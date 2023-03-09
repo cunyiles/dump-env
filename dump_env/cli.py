@@ -112,5 +112,10 @@ def main() -> NoReturn:
         sys.exit(1)
     else:
         for env_name, env_value in variables.items():
-            sys.stdout.write('{0}={1}\n'.format(env_name, env_value))
+            # if env_value is multiline, we need to encapsulate it in '' or ""
+            if "\n" in env_value:
+                quote = '"' if '"' not in env_value else "'"
+                sys.stdout.write('{0}={1}{2}{1}\n'.format(env_name, quote, env_value))
+            else:
+                sys.stdout.write('{0}={1}\n'.format(env_name, env_value))
         sys.exit(0)
