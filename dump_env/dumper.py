@@ -9,6 +9,23 @@ Store = Mapping[str, str]
 EMPTY_STRING = ''
 
 
+def _get_environ_items():
+    items = environ.items()
+
+    # encapsulate multiline items with '' or ""
+    encapsulated_items = []
+    for key, value in items:
+        if '\n' in value:
+            quote = '"' if "'" in value else "'"
+            value = value.replace(quote, '\\' + quote)
+            encapsulated_items.append((key, f"{quote}{value}{quote}"))
+        else:
+            encapsulated_items.append((key, value))
+            
+    return encapsulated_items
+
+
+
 def _parse(source: str) -> Store:
     """
     Reads the source ``.env`` file and load key-values.
@@ -48,7 +65,7 @@ def _preload_existing_vars(prefix: str) -> Store:
     prefixed = {}
 
     # Prefix is not empty, do the search and replacement:
-    for env_name, env_value in environ.items():
+    for env_name, env_value in _get_environ_items():
         if not env_name.startswith(prefix):
             # Skip vars with no prefix.
             continue
@@ -62,7 +79,7 @@ def _preload_specific_vars(env_keys: Set[str]) -> Store:
     """Preloads env vars from environ in the given set."""
     specified = {}
 
-    for env_name, env_value in environ.items():
+    for env_name, env_value in _get_environ_items():
         if env_name not in env_keys:
             # Skip vars that have not been requested.
             continue
