@@ -114,8 +114,18 @@ def main() -> NoReturn:
         for env_name, env_value in variables.items():
             # if env_value is multiline, we need to encapsulate it in '' or ""
             if "\n" in env_value:
-                quote = '"' if '"' not in env_value else "'"
-                sys.stdout.write('{0}={1}{2}{1}\n'.format(env_name, quote, env_value))
+                if '"' in env_value and "'" in env_value:
+                    # env_value contains both single and double quotes, so we need to escape them
+                    escaped_value = env_value.replace('"', '\\"').replace("'", "\\'")
+                elif '"' in env_value:
+                    # env_value contains only double quotes, so we can encapsulate it in single quotes
+                    escaped_value = env_value.replace('"', '\\"')
+                    quote = "'"
+                else:
+                    # env_value contains only single quotes, so we can encapsulate it in double quotes
+                    escaped_value = env_value.replace("'", "\\'")
+                    quote = '"'
+                sys.stdout.write('{0}={1}{2}{1}\n'.format(env_name, quote, escaped_value))
             else:
                 sys.stdout.write('{0}={1}\n'.format(env_name, env_value))
         sys.exit(0)
