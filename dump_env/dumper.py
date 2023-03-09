@@ -9,24 +9,6 @@ Store = Mapping[str, str]
 EMPTY_STRING = ''
 
 
-def _encapsulated_environ():
-    items = environ.items()
-
-    # encapsulate multiline items with '' or ""
-    encapsulated_items = []
-    for key, value in items:
-        if '\n' in value:
-            quote = '"' if "'" in value else "'"
-            value = value.replace(quote, '\\' + quote)
-            encapsulated_items.append((key, f"{quote}{value}{quote}"))
-        else:
-            encapsulated_items.append((key, value))
-    
-    encapsulated_environ = dict(encapsulated_items)
-    return encapsulated_environ
-
-
-
 def _parse(source: str) -> Store:
     """
     Reads the source ``.env`` file and load key-values.
@@ -61,12 +43,12 @@ def _preload_existing_vars(prefix: str) -> Store:
     """Preloads env vars from environ with the given prefix."""
     if not prefix:
         # If prefix is empty just return all the env variables.
-        return _encapsulated_environ
+        return environ
 
     prefixed = {}
 
     # Prefix is not empty, do the search and replacement:
-    for env_name, env_value in _encapsulated_environ():
+    for env_name, env_value in environ.items():
         if not env_name.startswith(prefix):
             # Skip vars with no prefix.
             continue
@@ -80,7 +62,7 @@ def _preload_specific_vars(env_keys: Set[str]) -> Store:
     """Preloads env vars from environ in the given set."""
     specified = {}
 
-    for env_name, env_value in _encapsulated_environ():
+    for env_name, env_value in environ.items():
         if env_name not in env_keys:
             # Skip vars that have not been requested.
             continue
@@ -95,7 +77,7 @@ def _assert_envs_exist(strict_keys: Set[str]) -> None:
     missing_keys: List[str] = [
         strict_key
         for strict_key in strict_keys
-        if strict_key not in _encapsulated_environ
+        if strict_key not in environ
     ]
 
     if missing_keys:
